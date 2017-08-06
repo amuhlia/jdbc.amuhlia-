@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE note [
+<!ENTITY writer "writer:A Muhlia.">
+<!ENTITY copyright "A Muhlia">
+]>
+	<sqlMap namespace="Example">
+		<resultMap	id="Example.getConsultaEjemploMap"	class="mx.com.amuhlia.model.ClsExampleDTO">
+	
+			<result	property="total"		column="total"/>
+			<result	property="id"			column="Id"/>
+			<result	property ="userId"		column="UserId"/>
+			<result	property="userName"		column="UserName"/>
+			<result	property="fecha"		column="Fecha"/>
+
+		</resultMap>
+		<procedure id="Example.getConsultaBitacora" parameterClass="java.util.HashMap" resultMap="Example.getConsultaEjemploMap">
+			EXEC database.dbo.SP_Example #eIni#,#tamPagina#,#ord#,#direccion#,#UsuarioId#,#FechaMin#,#FechaMax#
+		</procedure>
+		
+		<procedure id="Example.setExample" parameterClass="java.util.HashMap">
+			EXEC database.dbo.SP_Example2 #idSistema#,#userId#,#total#,#id#,#userName#,#fecha#
+		</procedure>
+	</sqlMap>
