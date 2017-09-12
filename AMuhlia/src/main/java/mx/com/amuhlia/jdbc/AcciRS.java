@@ -57,18 +57,39 @@ public class AcciRS {
 	public ResultSet result(String strQuery) throws DataAccessException{
 		
 		ResultSet rs = null;
-		Statement stmt =null;
+		Statement stmt = null;
 		
 		try{
 		
-		stmt = conJDBC.getConnection().createStatement();
+		stmt = (Statement) conJDBC.getConnection().createStatement();
 
 		log.debug("Query " + strQuery);
 		
 		if ( stmt.execute(strQuery) ){
-			rs = stmt.getResultSet();
+			
+			stmt.checkStatement();
+			
+			//Thread.sleep(500);
+			
+			rs = (ResultSet) stmt.getResultSet();
+			
+			log.debug("rs.get("+ strQuery +");");
+			
 		} else {
-			stmt.close();
+			
+			if (stmt.getMoreResults()) {
+				
+				rs = (ResultSet) stmt.getResultSet();
+				
+				log.debug("2rs.get("+ strQuery +");");
+				
+			} else {
+				
+				log.debug("stmt.close(" + strQuery + ");");
+				stmt.close();
+				
+			}
+
 		}
 		
 		if (rs != null) {
@@ -78,7 +99,7 @@ public class AcciRS {
 		}
 	
 		} catch (Exception e) {
-			log.fatal("stmt.SQLException()", e);
+			log.emergency("stmt.SQLException()", e);
 			throw new DataAccessException("Metodo result ", e);
 		} 
 		return rs;
