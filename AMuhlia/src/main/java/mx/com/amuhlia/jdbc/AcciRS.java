@@ -61,7 +61,7 @@ public class AcciRS {
 		
 		try{
 		
-		stmt = (Statement) conJDBC.getConnection().createStatement();
+		stmt = conJDBC.getConnection().createStatement();
 
 		log.debug("Query " + strQuery);
 		
@@ -71,7 +71,7 @@ public class AcciRS {
 			
 			//Thread.sleep(500);
 			
-			rs = (ResultSet) stmt.getResultSet();
+			rs = stmt.getResultSet();
 			
 			log.debug("rs.get("+ strQuery +");");
 			
@@ -79,7 +79,7 @@ public class AcciRS {
 			
 			if (stmt.getMoreResults()) {
 				
-				rs = (ResultSet) stmt.getResultSet();
+				rs = stmt.getResultSet();
 				
 				log.debug("2rs.get("+ strQuery +");");
 				
