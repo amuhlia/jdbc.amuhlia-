@@ -42,9 +42,9 @@ public class xmlLeeEspecial implements Serializable{
 			
 			xmlLeeEspecial xmlLee = new xmlLeeEspecial();
 			
-			//allXmlInCTO = xmlLee.leeXML("sitMapBitacora.xml");
-			allXmlInCTO = xmlLee.leeXML("sitMapCatComision.xml");
-			
+			//allXmlInCTO = xmlLee.leeXML("MapExample.xml");
+			allXmlInCTO = xmlLee.leeXML("MapExample.xml");
+
 						
 			for (ProcedureCTO item : allXmlInCTO.getCtoProcedure()) {
 				staticlog.debug("ProcedureCTO (iterator): " + item);
@@ -83,27 +83,12 @@ public class xmlLeeEspecial implements Serializable{
 			vAll = new Vector<SqlMapAcciSit>();
 			
 			try {
-				
-				vAll.add(leeXML("sitMapBitacora.xml"));
-				vAll.add(leeXML("sitMapCatComision.xml"));
-				vAll.add(leeXML("sitMapCatDiferPrecio.xml"));
-				vAll.add(leeXML("sitMapDefault.xml"));
-				vAll.add(leeXML("sitMapGpoInstr.xml"));
-				vAll.add(leeXML("sitMapGuiaCtb.xml"));
-				vAll.add(leeXML("sitMapGuiaCtbMasiva.xml"));
-				vAll.add(leeXML("sitMapGuiaGest.xml"));
-				vAll.add(leeXML("sitMapGuiaGestMasiva.xml"));
-				vAll.add(leeXML("sitMapGuiaRendCart.xml"));
-				vAll.add(leeXML("sitMapGuiaVal.xml"));
-				vAll.add(leeXML("sitMapGuiaValMasiva.xml"));
-				vAll.add(leeXML("sitMapInstr.xml"));
-				vAll.add(leeXML("sitMapLibroCtb.xml"));
-				vAll.add(leeXML("sitMapMovAut.xml"));
-				vAll.add(leeXML("sitMapNivelCta.xml"));
-				vAll.add(leeXML("sitMapPortf.xml"));
-				vAll.add(leeXML("sitMapRubroCtb.xml"));
-				vAll.add(leeXML("sitMapTipoRenta.xml"));
-				vAll.add(leeXML("sitMapTrans.xml"));
+
+				vAll.add(leeXML("MapExample.xml"));
+
+				/*vAll.add(leeXML("MapExample1.xml"));
+				vAll.add(leeXML("MapExample2.xml"));
+				vAll.add(leeXML("MapExample3.xml"));*/
 							
 				for (SqlMapAcciSit vitem : vAll) {
 					
