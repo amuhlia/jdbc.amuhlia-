@@ -8,25 +8,23 @@
 
 package mx.com.amuhlia.jdbc;
 
-import mx.com.amuhlia.exceptions.CannotGetJdbcConnectionException;
-import org.apache.log4j.Logger;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Properties;
+
+import mx.com.amuhlia.exceptions.CannotGetJdbcConnectionException;
+import org.apache.log4j.Logger;
 
 
 public class AcciJDBC {
 	
 	    private static AcciJDBC myObj;
-	    private Connection conn;
 	    private DataSource ds;
-	Logger log= Logger.getLogger("AcciJDBC");
+	    Logger log = Logger.getLogger("AcciJDBC");
 
 	    /**
 	     * Create private constructor
@@ -43,16 +41,19 @@ public class AcciJDBC {
 			
 			try{
 			    log.debug("Properties" + propLoad.toString());
+			    log.debug("getHostName() " + java.net.InetAddress.getLocalHost().getHostName() );
 			    
 				prop.put(Context.INITIAL_CONTEXT_FACTORY, "weblogic.jndi.WLInitialContextFactory");
-				prop.put(Context.PROVIDER_URL, "t3://"+ propLoad.getProperty("HOST_NAME")+":"+propLoad.getProperty("PORT_NUMBER")+"");
+				prop.put(Context.PROVIDER_URL, "t3://"+ java.net.InetAddress.getLocalHost().getHostName() +":"+propLoad.getProperty("PORT_NUMBER")+"");
 				Context ctx = new InitialContext(prop);
 				Object obj = ctx.lookup("PoolProdc1"); // java:comp/env/CPDS
 				ds = (DataSource) obj;
-				conn = ds.getConnection();
-				log.debug("�Se ha establecido la Conexi�n JDBC.....!");
+				//conn = (Connection) ds.getConnection();
+				log.debug("//Se ha establecido la JDBC.....//");
 				//ctx.close();
 			} catch  (Exception e) {
+				log.fatal("AcciJDBC(1).getHostName() " + java.net.InetAddress.getLocalHost().getHostName());
+				log.fatal("AcciJDBC(1) Properties" + propLoad.toString(),e);
 				throw new CannotGetJdbcConnectionException();
 			} finally {
 				
@@ -75,15 +76,12 @@ public class AcciJDBC {
 	    
 	    public void reConnectOn() throws IOException, CannotGetJdbcConnectionException, SQLException{
 	    	//TODO no esta probado
-	    	myObj.getConnection().close();
+	    	//myObj.getConnection().close();
 	    	log.debug(":Conn=Null:");
 	    	myObj = new AcciJDBC();
 	    	log.debug(":Conn=New:");
 	    }
 	     
-	    public Connection getConnection(){
-	        return conn;
-	    }
 	    
 	    public DataSource getDataSource(){
 	        return ds;

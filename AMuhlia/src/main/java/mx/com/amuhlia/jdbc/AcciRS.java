@@ -61,17 +61,17 @@ public class AcciRS {
 		
 		try{
 		
-		stmt = conJDBC.getConnection().createStatement();
+		stmt = (Statement) conJDBC.getDataSource().getConnection().createStatement();
 
 		log.debug("Query " + strQuery);
 		
 		if ( stmt.execute(strQuery) ){
 			
-			stmt.checkStatement();
+			//stmt.checkStatement();
 			
 			//Thread.sleep(500);
 			
-			rs = stmt.getResultSet();
+			rs = (ResultSet) stmt.getResultSet();
 			
 			log.debug("rs.get("+ strQuery +");");
 			
@@ -79,7 +79,7 @@ public class AcciRS {
 			
 			if (stmt.getMoreResults()) {
 				
-				rs = stmt.getResultSet();
+				rs = (ResultSet) stmt.getResultSet();
 				
 				log.debug("2rs.get("+ strQuery +");");
 				
@@ -99,7 +99,7 @@ public class AcciRS {
 		}
 	
 		} catch (Exception e) {
-			log.emergency("stmt.SQLException()", e);
+			log.fatal("stmt.SQLException()", e);
 			throw new DataAccessException("Metodo result ", e);
 		} 
 		return rs;
@@ -112,14 +112,24 @@ public class AcciRS {
 		
 		try{
 		
-		stmt = conJDBC.getConnection().createStatement();
+		stmt = (Statement) conJDBC.getDataSource().getConnection().createStatement();
 
 		log.debug("Query " + strQuery);
 		blOK = stmt.execute(strQuery);
 		stmt.close();
 
 		} catch (Exception e) {
+			log.fatal("M-e-resultInsert", e);
+			try {
+				stmt.cancel();
+				stmt.close();
+			} catch (Throwable e1) {
+				log.fatal("M-e1-resultInsert", e1);
+				throw new DataAccessException("Metodo pre-resultInsert ", e1);
+			}
 			throw new DataAccessException("Metodo resultInsert ", e);
+		}finally {
+			try {stmt.getConnection().close();} catch (Exception e) {}
 		}
 		return blOK;
 
@@ -135,18 +145,18 @@ public class AcciRS {
 		
 		try{
 		
-			conn = conJDBC.getConnection();
-			conn.setAutoCommit(false);
-			cstmt = conn.prepareCall(strQuery);
+			conn = (Connection) conJDBC.getDataSource().getConnection(); 
+			((java.sql.Connection) conn).setAutoCommit(false);
+			cstmt = (CallableStatement) conn.prepareCall(strQuery);
 
 			log.debug("Query " + strQuery);
-			rsUP = cstmt.executeQuery();
-			rsUP.next();
-			hResultado.put("resultado", String.valueOf(rsUP.getObject("resultado")));
+			rsUP = (ResultSet) cstmt.executeQuery();
+			((java.sql.ResultSet) rsUP).next();
+			hResultado.put("resultado", String.valueOf(((java.sql.ResultSet) rsUP).getObject("resultado")));
 			log.debug("resultado:" + hResultado.toString());
 			cstmt.getConnection().commit();
 			cstmt.close();
-			conn.setAutoCommit(true);
+			((java.sql.Connection) conn).setAutoCommit(true);
 		} catch (Exception e) {
 			try {
 				log.fatal("Metodo resultUpdate pre-rollback ", e);
@@ -157,6 +167,8 @@ public class AcciRS {
 				throw new DataAccessException("Metodo resultUpdate rollback ", e1);
 			}
 			throw new DataAccessException("Metodo resultUpdate ", e);
+		}finally {
+			try {cstmt.getConnection().close();} catch (Exception e) {}
 		}
 		return (hResultado);
 
@@ -175,7 +187,7 @@ public class AcciRS {
 		ResultSet lRs = result((String) hProcMapRelac.get("strQuery")); //query
 			
 		if (lRs==null && hProcMapRelac.get("RClass")==null) {
-			hmParametros.put("Resultado", "-1");
+			hmParametros.put("resultado", "-1");
 			lList.add(hmParametros);
 			log.debug("fake-hmParametros" + lList.toString());
 			
@@ -184,6 +196,8 @@ public class AcciRS {
 			try {
 				Class<?> clase = Class.forName((String) hProcMapRelac.get("RClass"));
 				lList.add(clase.newInstance());
+				log.debug("fake-Class<?>:" + hProcMapRelac.get("RClass"));
+				
 			} catch (ClassNotFoundException e) {
 				throw new DataAccessException(":QueryForList ClassError:", e);
 			} catch (InstantiationException e) {
@@ -201,14 +215,14 @@ public class AcciRS {
 				
 				try {
 					
-					lrSMeta = lRs.getMetaData();
-					int iCount = lrSMeta.getColumnCount(); 
+					lrSMeta = (ResultSetMetaData) lRs.getMetaData();
+					int iCount = ((java.sql.ResultSetMetaData) lrSMeta).getColumnCount(); 
 					log.debug("hashColumnCount: "+ iCount);
 					
-					while (lRs.next()) {
+					while (((java.sql.ResultSet) lRs).next()) {
 						
 						for (int x=1; x<=iCount; x++){
-							lhMap.put(lrSMeta.getColumnName(x),lRs.getObject(x));
+							lhMap.put(((java.sql.ResultSetMetaData) lrSMeta).getColumnName(x),((java.sql.ResultSet) lRs).getObject(x));
 							log.debug("lHap:" + lhMap.toString());
 						}
 						
@@ -219,11 +233,13 @@ public class AcciRS {
 					log.debug("hlList:" + lList.toString());
 					
 				} catch (SQLException e) {
-					log.debug("(error)lhMap:" + lhMap.toString());
+					log.error("(sqlerror)lhMap:" + lhMap.toString(),e);
 					throw new DataAccessException(":hQueryForList SQLError:", e);
 				} catch (Exception e) {
-					log.debug("(error)lhMap:" + lhMap.toString());
+					log.error("(error)lhMap:" + lhMap.toString(),e);
 					throw new DataAccessException(":hQueryForList Exception:", e);
+				}finally {
+					try {lRs.getStatement().getConnection().close();} catch (Exception e) {}
 				}
 			
 			
@@ -250,12 +266,12 @@ public class AcciRS {
 										
 					log.debug("ColumnCount: "+lRs.getMetaData().getColumnCount());
 					
-					 while (lRs.next()) {
+					 while (((java.sql.ResultSet) lRs).next()) {
 						 obj = clase.newInstance();
 						
 						for (ResultCTO item : ctoResult){
 							String strTMP = new String();
-							oValor = lRs.getObject(item.getStrColumn());
+							oValor = ((java.sql.ResultSet) lRs).getObject(item.getStrColumn());
 							log.debug("Columna: "+ item.getStrColumn() + "  RS Valor:"+oValor  );
 							
 							//TODO Magia del reflexion
@@ -296,7 +312,7 @@ public class AcciRS {
 					}
 					
 						
-					log.debug(lList.toString());
+					//log.debug(lList.toString());
 					
 				} catch (SQLException e) {
 					throw new DataAccessException(":QueryForList SQLError:", e);
@@ -316,9 +332,14 @@ public class AcciRS {
 					throw new DataAccessException(":QueryForList InvocationTargetException:", e);
 				} catch (Exception e) {
 					throw new DataAccessException(":QueryForList ExceptionGeneral:", e);
+				}finally {
+					try {lRs.getStatement().getConnection().close();} catch (Exception e) {}
 				}
 		
 		}
+		
+				try {lRs.getStatement().getConnection().close();} catch (Exception e) {}
+		
 		
 		 return lList;
 		
@@ -341,17 +362,18 @@ public class AcciRS {
 						if (itemMap.getStrId().equals(hReturn.get("RMap"))) {
 							hReturn.put("RClass", itemMap.getStrClass());
 							hReturn.put("ResultCTO", itemMap.gethResult());
+							log.debug("(RMap)Rutina-buscaProcedureYMap-: "+ hReturn.toString());
 							return hReturn;
 						}
 						
 					}
-					log.debug("Rutina-buscaProcedureYMap-: "+ hReturn.toString());
+					log.debug("(normal)Rutina-buscaProcedureYMap-: "+ hReturn.toString());
 					return hReturn;
 					
 					} //if(procedure)
 				} //for (procedure)
 			} //for (all)
-		
+		log.debug("(null)Rutina-buscaProcedureYMap-: "+ hReturn.toString());
 		return null;
 	}
 	
@@ -368,11 +390,17 @@ public class AcciRS {
 		try {
 			boolean lok = resultInsert((String) hProcMapRelac.get("strQuery"));
 			
-			log.debug("resultInsert() : " + lok);
+			log.debug("resultInsert() : " + lok + " // " + String.valueOf((lok) ? 0 : -1));
 			
-			lList.add( (HashMap) (new HashMap()).put("resultado", String.valueOf(lok)) );
+			hmParametros.put("resultado", String.valueOf((lok) ? 0 : -1));
+			
+			lList.add( hmParametros );
 			
 			} catch (DataAccessException e) {
+				
+				hmParametros.put("resultado", "-7");
+				lList.add( hmParametros );
+				
 				log.fatal("insert() DataAccessException: ", e);
 			}
 		
@@ -404,4 +432,18 @@ public class AcciRS {
 	
 }
 
+
+
+final class accivalReflexion {
+	
+
+       public accivalReflexion(){
+    	   
+       }
+       
+       public Object DTOClass(String strNombreCls, Object vParam){
+    	   return null;
+       }
+	
+}
 

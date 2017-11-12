@@ -7,10 +7,10 @@
 */
 package mx.com.amuhlia.jdbc.xml;
 
-import mx.com.amuhlia.jdbc.xml.helper.QueryHelper;
-
 import java.io.Serializable;
 import java.util.HashMap;
+
+import mx.com.amuhlia.jdbc.xml.helper.QueryHelper;
 
 public class ProcedureCTO implements Serializable {
 	

@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.apache.log4j.Logger;
 
-
 public class QueryHelper implements Serializable {
 	
 	private static final long serialVersionUID = 7084551988873444815L;
@@ -25,7 +24,7 @@ public class QueryHelper implements Serializable {
 	private String strCommandExe = new String();
 	private HashMap<String,String> hParametros = new HashMap<String, String>();
 	private Vector<String> viParams = new Vector<String>();
-	private Logger log= Logger.getLogger("QueryHelper");
+	private Logger log = Logger.getLogger("QueryHelper");
 	
 	public String getStrProcTxt() {
 		return strProcTxt;
@@ -58,22 +57,40 @@ public class QueryHelper implements Serializable {
 		String strValor = new String();
 		int iCont = 0;
 		
+		try{
+		
 		for (String item : viParams) {
 			
-			strValor = hParametros.get(item).trim();
+			log.debug(" (iterator) viParams: " + item + " strValor:" + strValor);
+			
+			strValor = (hParametros.get(item)!=null)?hParametros.get(item).trim():"";
 			
 			if (StringUtils.isNumeric(strValor) && !strValor.isEmpty() ){
-				strCommandExe = strCommandExe + " " + strValor + " ,";
+				
+				if(strValor.startsWith("0") && strValor.length()>1){
+					strCommandExe = strCommandExe + " '" + strValor + "',";
+				}else{
+					strCommandExe = strCommandExe + " " + strValor + " ,";
+				}
+				
 			}else {
 				strCommandExe = strCommandExe + " '" + strValor + "',";
 			}
 			
 			iCont=1;
 			
-			log.debug(" (iterator) viParams: " + item + " strValor:" + strValor);
+			
 		}
 		
-		return strCommandExe.substring(0, strCommandExe.length()-iCont);
+		strCommandExe = strCommandExe.substring(0, strCommandExe.length()-iCont);
+		
+		}catch(Exception e){
+			log.fatal(" (iterator) ",e);
+		}
+		
+		log.debug(" (fin)(iterator) strCommandExe: " + strCommandExe);
+		
+		return strCommandExe;
 	}
 
 	private void setStrCommandExe(String strCommandExe) {
