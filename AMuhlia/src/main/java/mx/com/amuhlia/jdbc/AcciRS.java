@@ -71,7 +71,7 @@ public class AcciRS {
 			
 			//Thread.sleep(500);
 			
-			rs = (ResultSet) stmt.getResultSet();
+			rs = stmt.getResultSet();
 			
 			log.debug("rs.get("+ strQuery +");");
 			
@@ -79,7 +79,7 @@ public class AcciRS {
 			
 			if (stmt.getMoreResults()) {
 				
-				rs = (ResultSet) stmt.getResultSet();
+				rs = stmt.getResultSet();
 				
 				log.debug("2rs.get("+ strQuery +");");
 				
@@ -112,7 +112,7 @@ public class AcciRS {
 		
 		try{
 		
-		stmt = (Statement) conJDBC.getDataSource().getConnection().createStatement();
+		stmt = conJDBC.getDataSource().getConnection().createStatement();
 
 		log.debug("Query " + strQuery);
 		blOK = stmt.execute(strQuery);
@@ -145,18 +145,18 @@ public class AcciRS {
 		
 		try{
 		
-			conn = (Connection) conJDBC.getDataSource().getConnection(); 
-			((java.sql.Connection) conn).setAutoCommit(false);
-			cstmt = (CallableStatement) conn.prepareCall(strQuery);
+			conn = conJDBC.getDataSource().getConnection();
+			conn.setAutoCommit(false);
+			cstmt = conn.prepareCall(strQuery);
 
 			log.debug("Query " + strQuery);
-			rsUP = (ResultSet) cstmt.executeQuery();
-			((java.sql.ResultSet) rsUP).next();
-			hResultado.put("resultado", String.valueOf(((java.sql.ResultSet) rsUP).getObject("resultado")));
+			rsUP = cstmt.executeQuery();
+			rsUP.next();
+			hResultado.put("resultado", String.valueOf(rsUP.getObject("resultado")));
 			log.debug("resultado:" + hResultado.toString());
 			cstmt.getConnection().commit();
 			cstmt.close();
-			((java.sql.Connection) conn).setAutoCommit(true);
+			conn.setAutoCommit(true);
 		} catch (Exception e) {
 			try {
 				log.fatal("Metodo resultUpdate pre-rollback ", e);
@@ -215,21 +215,21 @@ public class AcciRS {
 				
 				try {
 					
-					lrSMeta = (ResultSetMetaData) lRs.getMetaData();
-					int iCount = ((java.sql.ResultSetMetaData) lrSMeta).getColumnCount(); 
+					lrSMeta = lRs.getMetaData();
+					int iCount = lrSMeta.getColumnCount();
 					log.debug("hashColumnCount: "+ iCount);
 					
-					while (((java.sql.ResultSet) lRs).next()) {
+					while (lRs.next()) {
 						
 						for (int x=1; x<=iCount; x++){
-							lhMap.put(((java.sql.ResultSetMetaData) lrSMeta).getColumnName(x),((java.sql.ResultSet) lRs).getObject(x));
+							lhMap.put(lrSMeta.getColumnName(x), lRs.getObject(x));
 							log.debug("lHap:" + lhMap.toString());
 						}
-						
+
 						lList.add(lhMap);
 						lhMap = new  HashMap<String,Object>();
 					}
-					
+
 					log.debug("hlList:" + lList.toString());
 					
 				} catch (SQLException e) {
@@ -271,7 +271,7 @@ public class AcciRS {
 						
 						for (ResultCTO item : ctoResult){
 							String strTMP = new String();
-							oValor = ((java.sql.ResultSet) lRs).getObject(item.getStrColumn());
+							oValor = lRs.getObject(item.getStrColumn());
 							log.debug("Columna: "+ item.getStrColumn() + "  RS Valor:"+oValor  );
 							
 							//TODO Magia del reflexion
